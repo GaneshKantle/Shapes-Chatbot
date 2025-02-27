@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        /* General Styles */
+body {
+    background: linear-gradient(135deg, #6a82fb 0%, #fc5c7d 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Changed font */
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    margin-left: 0; /* No sidebar space by default */
+    transition: margin-left 0.3s ease-in-out;
+}
+
+/* Navbar Styling */
+.navbar {
+    background: rgba(255, 255, 255, 0.85); /* Slightly more transparent */
+    backdrop-filter: blur(15px); /* Increased blur */
+    padding: 1rem;
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3); /* Darker shadow */
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #1f2937; /* Darker text color */
+    font-size: 1.1rem; /* Slightly larger font size */
+    margin: 0 1rem;
+}
+
+.navbar a:hover {
+    color: #2563eb; /* Changed hover color */
+}
+
+/* Sidebar Styles */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: -250px; /* Hidden by default */
+    width: 250px;
+    height: 100%;
+    background: #ffffff;
+    transition: left 0.3s ease-in-out;
+    z-index: 1100;
+    box-shadow: 4px 0px 15px rgba(0, 0, 0, 0.3); /* Darker shadow */
+    overflow-x: hidden;
+}
+
+#sidebar.expanded {
+    left: 0; /* Show sidebar */
+}
+
+/* Fixed Toggle Button Styles */
+#sidebarToggle {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1200;
+    background: rgba(255, 255, 255, 0.3); /* More transparent */
+    color: #4b5563; /* Darker text color */
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#sidebarToggle:hover {
+    background-color: rgba(45, 55, 72, 0.2); /* Slight background on hover */
+}
+
+/* Toggle Button */
+.toggle-btn {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    background: linear-gradient(135deg, #2563eb, #9333ea); /* Changed gradient */
+    color: #ffffff;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-btn i {
+    margin-right: 0.5rem;
+}
+
+/* Responsive Fixes */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .sidebar {
+        width: 200px;
+    }
+}
+
+/* Background and Shadow Styles */
+.bg-white {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+.rounded-xl {
+    border-radius: 1rem;
+}
+
+.shadow-2xl {
+    box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.4); /* Darker shadow */
+}
+
+/* Heading Styles */
+h1 {
+    font-size: 2.5rem; /* Increased font size */
+    color: #1f2937; /* Darker heading color */
+    text-align: center;
+}
+
+/* Text Hover Effects */
+.text-blue-500:hover {
+    color: #2563eb !important; /* Changed hover color */
+}
+
+.text-red-500:hover {
+    color: #ef4444 !important; /* No change */
+}
+
+/* Messages Container */
+.messages {
+    flex: 1; /* Fill available space */
+    overflow-y: auto; /* Scrollable messages area */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Chat Container */
+.chat-container {
+    height: 350px;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    width: 100%;
+    padding: 1rem; /* Increased padding */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Message Styles */
+.message-user {
+    max-width: 80%;
+    margin: 0.5rem 0 0.5rem auto; /* Auto margin for alignment */
+    padding: 0.75rem;
+    color: #1f2937; /* Darker text color */
+    background-color: #dbeafe; /* Changed background color */
+    border-radius: 0.75rem;
+    text-align: right; /* Right-align the text */
+    clear: both;
+    float: right; /* Float to the right */
+}
+
+.message-bot {
+    max-width: 90%;
+    margin: 0.5rem auto 0.5rem 0; /* Auto margin for alignment */
+    padding: 0.75rem;
+    color: #1f2937; /* Darker text color */
+    background-color: #f0f4f8; /* No change */
+    border-radius: 0.75rem;
+    text-align: left; /* Left-align the text */
+    clear: both;
+    float: left; /* Float to the left */
+}
+
+/* Ensure content doesn't get hidden behind fixed toggle */
+.content-wrapper {
+    margin-left: 0;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+body.sidebar-expanded .content-wrapper {
+    margin-left: 250px;
+}
+
+/* Sidebar Links */
+#sidebar.p-4 a {
+    color: #4b5563; /* Darker link color */
+}
+
+/* Additional styles to control text expansion */
+.message-user p {
+    margin: 0;
+    line-height: 1.4;
+}
+.message-bot p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+    color: #36454F; /* Darker color */
+    font-style: italic;
+}
+
+/* Message Input Styles */
+#messageInput {
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    margin-right: 0;
+    font-size: 1rem;
+    color: #36454F; /* No change */
+    background: #ffffff; /* No change */
+    width: 100%;
+}
+
+/* Send Button Styles */
+#sendBtn {
+    background: linear-gradient(135deg, #2563eb, #9333ea); /* Changed gradient */
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Bot Name Container */
+.bot-name-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* User and Bot Labels */
+.message-user-label {
+    font-weight: bold;
+    margin-right: 0;
+    margin-bottom: 0.25rem;
+}
+.message-bot-label {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+/* Adjusting message alignment */
+.message-user {
+    margin-right: 0; /* Remove margin spaces */
+}
+.message-bot {
+    margin-left: 0; /* Remove margin spaces */
+}
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <div class="ml-4 flex items-center space-x-4">
+                        <a href="#" class="text-gray-600 hover:text-blue-600">Home</a>
+                        <a href="#" class="text-gray-600 hover:text-blue-600">Features</a>
+                        <a href="#" class="text-gray-600 hover:text-blue-600">About</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="loginBtn" class="text-blue-600 hover:text-blue-800">Login</button>
+                    <button id="signupBtn" class="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="flex-grow container mx-auto px-4 py-8">
+        <div class="flex">
+            <!-- Chatbot Container -->
+            <div class="flex-grow bg-white rounded-xl shadow-2xl p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h1 class="text-2xl font-bold text-gray-800">SHAPES BOT</h1>
+                    <div class="flex space-x-2">
+                        <button id="historyBtn" class="text-blue-500 hover:text-blue-700" title="Chat History">
+                            <i class="fas fa-history"></i>
+                        </button>
+                        <button id="clearHistoryBtn" class="text-red-500 hover:text-red-700" title="Clear History">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button id="toggleThemeBtn" class="text-gray-500 hover:text-gray-700" title="Toggle Theme">
+                            <i class="fas fa-adjust"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Container -->
+                <div id="chatContainer" class="chat-container mb-4 flex flex-col space-y-3">
+                    <div class="text-center text-gray-500 text-sm mb-2">
+                        Chat with ShapesBot AI! 🤖
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="flex space-x-2">
+                    <input
+                        type="text"
+                        id="messageInput"
+                        placeholder="Type your message.."
+                        class="flex-grow p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                    <button
+                        id="sendBtn"
+                        class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300"
+                    >
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                    <button
+                        id="voiceBtn"
+                        class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300"
+                        title="Voice Input"
+                    >
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md max-h-96 overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Chat History</h2>
+                <button id="closeHistoryBtn" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="historyContainer" class="space-y-3">
+                <!-- History will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+</body>
+   <script>
+       function addMessageToChat(sender, message) {
+
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add(
+        sender === 'user' ? 'message-user' : 'message-bot'
+    );
+
+    // More robust bold text handling
+    const processedMessage = escapeHTML(message).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+
+    messageDiv.innerHTML = `<p>${processedMessage}</p>`;
+
+    chatContainer.appendChild(messageDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+   </script>
+    <script>
+        function escapeHTML(unsafe) {
+    const div = document.createElement('div');
+    div.innerText = unsafe;
+    return div.innerHTML;
+}
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const historyBtn = document.getElementById('historyBtn');
+            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+            const historyModal = document.getElementById('historyModal');
+            const historyContainer = document.getElementById('historyContainer');
+            const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+            const toggleThemeBtn = document.getElementById('toggleThemeBtn');
+            const voiceBtn = document.getElementById('voiceBtn');
+
+            // Theme toggle functionality
+            let isDarkMode = false;
+            toggleThemeBtn.addEventListener('click', () => {
+                isDarkMode = !isDarkMode;
+                document.body.classList.toggle('dark', isDarkMode);
+
+                // Adjust colors based on theme
+                if (isDarkMode) {
+                    document.body.style.background = 'linear-gradient(135deg, #1a202c, #2d3748)';
+                } else {
+                    document.body.style.background = 'linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%)';
+                }
+            });
+
+            // Voice input functionality
+            const recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (recognition) {
+                const speechRecognition = new recognition();
+                speechRecognition.continuous = false;
+                speechRecognition.lang = 'en-US';
+
+                voiceBtn.addEventListener('click', () => {
+                    try {
+                        speechRecognition.start();
+                        voiceBtn.classList.add('bg-red-500');
+                    } catch (error) {
+                        console.error('Speech recognition error:', error);
+                        alert('Speech recognition not supported or blocked.');
+                    }
+                });
+
+                speechRecognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    messageInput.value = transcript;
+                    voiceBtn.classList.remove('bg-red-500');
+                };
+
+                speechRecognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    voiceBtn.classList.remove('bg-red-500');
+                };
+            } else {
+                voiceBtn.style.display = 'none'; // Hide voice button if not supported
+            }
+
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.id = 'typingIndicator';
+                typingDiv.classList.add('p-3', 'rounded-lg', 'message-bot', 'typing-indicator');
+                typingDiv.innerHTML = '<p class="text-gray-600">ShapeBot is typing..</p>';
+                chatContainer.appendChild(typingDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            function removeTypingIndicator() {
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+
+         sendBtn.addEventListener('click', sendMessage);
+
+            messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent default form submission
+            sendMessage(); // Call sendMessage function
+        }
+    });
+
+            historyBtn.addEventListener('click', fetchChatHistory);
+            closeHistoryBtn.addEventListener('click', () => {
+                historyModal.classList.add('hidden');
+                historyModal.classList.remove('flex');
+            });
+
+            clearHistoryBtn.addEventListener('click', () => {
+                axios.post('/clear_history')
+                    .then(response => {
+                        if (response.data.success) {
+                            chatContainer.innerHTML = `
+                                <div class="text-center text-gray-500 text-sm mb-2">
+                                    Chat history cleared! 🧹
+                                </div>
+                            `;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error clearing history:', error);
+                        alert('Failed to clear history. Please try again.');
+                    });
+            });
+
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (!message) return;
+
+                // Add user message to chat
+                   addMessageToChat('user', message);
+                    messageInput.value = '';
+
+                // Show typing indicator
+                showTypingIndicator();
+
+                // Send message to backend
+                  axios.post('/send_message', { message })
+                    .then(response => {
+                        removeTypingIndicator();
+                        addMessageToChat('bot', response.data.response);
+                    })
+                    .catch(error => {
+                        removeTypingIndicator();
+                        console.error('Error:', error);
+                        addMessageToChat('bot', 'Oops! Something went wrong. 🤖❌');
+                    });
+            }
+
+         function addMessageToChat(sender, message) {
+    const chatContainer = document.getElementById('chatContainer'); // Ensure this is defined
+    if (!chatContainer) {
+        console.error('Chat container not found.');
+        return;
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add(sender === 'user' ? 'message-user' : 'message-bot');
+
+    // Escape HTML and handle bold text
+    const escapeHTML = (unsafe) => {
+        const div = document.createElement('div');
+        div.innerText = unsafe;
+        return div.innerHTML;
+    };
+
+    const processedMessage = escapeHTML(message).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    messageDiv.innerHTML = `<p>${processedMessage}</p>`;
+
+    chatContainer.appendChild(messageDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to the bottom
+}
+
+
+            // Add this helper function to prevent XSS
+            function escapeHtml(unsafe) {
+                return unsafe
+                     .replace(/&/g, "&amp;")
+                     .replace(/</g, "&lt;")
+                     .replace(/>/g, "&gt;")
+                     .replace(/"/g, "&quot;")
+                     .replace(/'/g, "&#039;");
+            }
+
+            function fetchChatHistory() {
+                axios.get('/get_history')
+                    .then(response => {
+                        historyContainer.innerHTML = '';
+                        if (response.data.length === 0) {
+                            historyContainer.innerHTML = `
+                                <p class="text-center text-gray-500">No chat history available. 📜</p>
+                            `;
+                        } else {
+                            response.data.forEach((entry, index) => {
+                                const historyEntry = document.createElement('div');
+                                historyEntry.classList.add('border-b', 'py-2', 'relative');
+                                historyEntry.innerHTML = `
+                                    <p class="font-semibold">You: ${entry.user}</p>
+                                    <p class="text-gray-600">ShapeBot: ${entry.bot}</p>
+                                    <button class="absolute top-2 right-2 text-red-500 deleteHistoryItemBtn" data-index="${index}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                `;
+                                historyContainer.appendChild(historyEntry);
+                            });
+
+                            // Add event listeners for individual history item deletion
+                            document.querySelectorAll('.deleteHistoryItemBtn').forEach(btn => {
+                                btn.addEventListener('click', (e) => {
+                                    const index = e.currentTarget.getAttribute('data-index');
+                                    deleteHistoryItem(index);
+                                });
+                            });
+                        }
+                        historyModal.classList.remove('hidden');
+                        historyModal.classList.add('flex');
+                    })
+                    .catch(error => {
+                        console.error('Error fetching history:', error);
+                    });
+            }
+        });
+    </script>
+   <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.getElementById('sidebar');
+            document.querySelector('.toggle-btn').addEventListener('click', function () {
+                sidebar.classList.toggle('expanded');
+                document.body.classList.toggle('sidebar-expanded');
+            });
+        });
+    </script>
+       <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const body = document.body;
+
+            // CORRECTED Sidebar Toggle
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('expanded');
+                body.classList.toggle('sidebar-expanded');
+            });
+
+            const chatContainer = document.getElementById('chatContainer');
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (!message) return;
+
+                addMessageToChat('user', message);
+                messageInput.value = '';
+
+                // Simulate bot response (replace with actual backend call)
+                const botResponse = `I received: **${message}**. How can I help you?`;
+                setTimeout(() => {
+                    addMessageToChat('bot', botResponse);
+                }, 500);
+            }
+
+            sendBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+        });
+    </script>
+    <script>
+        // Sidebar Toggle
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-closed');
+        });
+
+        // Theme Toggle (Basic)
+        const themeToggle = document.getElementById('themeToggle');
+        let isDarkMode = false;
+
+        themeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark', isDarkMode);
+        });
+
+        // Login Modal
+        const loginBtn = document.getElementById('loginBtn');
+        const loginModal = document.getElementById('loginModal');
+
+        loginBtn.addEventListener('click', () => {
+            loginModal.classList.remove('hidden');
+            loginModal.classList.add('flex');
+        });
+
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.classList.add('hidden');
+                loginModal.classList.remove('flex');
+            }
+        });
+
+        // Basic Chat Functionality
+        const chatContainer = document.getElementById('chatContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+
+            // User Message
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.classList.add('bg-blue-100', 'p-2', 'rounded-lg', 'mb-2', 'text-right');
+            userMessageDiv.textContent = message;
+            chatContainer.appendChild(userMessageDiv);
+
+            // Bot Response (simulated)
+            const botMessageDiv = document.createElement('div');
+            botMessageDiv.classList.add('bg-gray-100', 'p-2', 'rounded-lg', 'mb-2');
+            botMessageDiv.textContent = `I received: ${message}`;
+            chatContainer.appendChild(botMessageDiv);
+
+            // Clear input
+            messageInput.value = '';
+
+            // Scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+         document.getElementById("sidebar").classList.remove("sidebar-closed");
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</body>
+</html>
