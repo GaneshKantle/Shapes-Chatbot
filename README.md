@@ -66,10 +66,10 @@ python app.py
 - The response is parsed and returned to the frontend for display
 
 ## Snapshots
-### UI
+### User Interface of the Bot
 ![Screenshot 2024-12-08 101035](https://github.com/user-attachments/assets/08030e07-26e3-4f30-b462-a9117b8b20e2)
 
-### History
+### History of Chat
 ![Screenshot 2024-12-08 101049](https://github.com/user-attachments/assets/ea50ed0a-0630-42c6-acf9-ad5458c6de3c)
 
 ### Dark/Light Theme
